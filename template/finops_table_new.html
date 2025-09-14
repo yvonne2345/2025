@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinOps系统资源使用分析报告</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Microsoft YaHei", sans-serif;
+      }
+
+      body {
+        background-color: #f5f5f5;
+        color: #333;
+        line-height: 1.6;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 24px;
+        color: #333;
+      }
+
+      h5 {
+        text-align: center;
+        color: #6c757d;
+      }
+
+      h2 {
+        margin: 25px 0 15px 0;
+        font-size: 18px;
+        color: #333;
+        border-left: 4px solid #3498db;
+        padding-left: 10px;
+      }
+
+      h3 {
+        margin: 20px 0 12px 0;
+        font-size: 16px;
+        color: #555;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 25px;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      th,
+      td {
+        border: 1px solid rgb(183, 178, 178);
+        padding: 10px 12px;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      th {
+        background-color: #f8f8f8;
+        font-weight: bold;
+      }
+
+      .divider {
+        height: 1px;
+        background: #ddd;
+        margin: 25px 0;
+        position: relative;
+      }
+
+      .divider:before {
+        content: "---";
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: -10px;
+        background: #f5f5f5;
+        padding: 0 10px;
+        color: #999;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+
+        th,
+        td {
+          padding: 8px 10px;
+          font-size: 13px;
+        }
+      }
+
+      .detail-content {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+      }
+
+      .detail-section {
+        flex: 1;
+        min-width: 300px;
+        margin: 10px;
+        margin-top: 0;
+        padding: 5px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .detail-title {
+        font-weight: 600;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #e8eeff;
+        display: flex;
+        align-items: center;
+      }
+
+      .detail-title i {
+        margin-right: 8px;
+        font-size: 18px;
+      }
+
+      .metric-grid {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .metric-item {
+        text-align: left;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        width: 48%;
+      }
+
+      .section {
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .tip {
+        color: #6c757d;
+        font-size: 14px;
+        width: 18%;
+      }
+
+      .tag {
+        width: 82%;
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>FinOps系统资源使用分析报告</h1>
+       该报告显示{{ .StartTime}} 到 {{ .EndTime}} 一周时间内，cpu和内存使用率最高和最低的前十系统。
+    <h2>
+      CPU资源使用超过阈值（container: > 60% pod: > 40%），建议进行扩容评估
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2">系统</th>
+          <th rowspan="2">应用</th>
+          <th rowspan="2">部署组</th>
+          <th colspan="2">CPU（使用率）</th>
+          <th colspan="2">内存（使用率）</th>
+          <th colspan="2">CPU（使用量）</th>
+          <th colspan="2">内存（使用量）</th>
+          <th rowspan="2">建议</th>
+        </tr>
+        <tr>
+          <th>pod（%）</th>
+          <th>container（%）</th>
+          <th>pod（%）</th>
+          <th>container（%）</th>
+          <th>pod（Mb）</th>
+          <th>container（Mb）</th>
+          <th>pod（Mb）</th>
+          <th>container（Mb）</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .OverWeekData}}
+        <tr>
+          <td>{{ .SystemName }}</td>
+          <td>{{ .ApplicationName}}</td>
+          <td>{{ .GroupName}}</td>
+          <td>{{ .PodCpuAvg}}</td>
+          <td>{{ .ContainerCpuAvg}}</td>
+          <td>{{ .PodMemAvg}}</td>
+          <td>{{ .ContainerMemAvg}}</td>
+          <td>{{ .PodCoreAvg}}</td>
+          <td>{{ .ContainerCoreAvg}}</td>
+          <td>{{ .PodMemValue}}</td>
+          <td>{{ .ContainerMemValue}}</td>
+          <td>{{ .Recommend}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+    <h2>
+      CPU资源使用低于阈值（container: < 30% pod: < 15%），建议进行缩容评估
+    </h2>
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2">系统</th>
+          <th rowspan="2">应用</th>
+          <th rowspan="2">部署组</th>
+          <th colspan="2">CPU（使用率）</th>
+          <th colspan="2">内存（使用率）</th>
+          <th colspan="2">CPU（使用量）</th>
+          <th colspan="2">内存（使用量）</th>
+          <th rowspan="2">建议</th>
+        </tr>
+        <tr>
+          <th>pod（%）</th>
+          <th>container（%）</th>
+          <th>pod（%）</th>
+          <th>container（%）</th>
+          <th>pod（Mb）</th>
+          <th>container（Mb）</th>
+          <th>pod（Mb）</th>
+          <th>container（Mb）</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .BelowWeekData}}
+        <tr>
+          <td>{{ .SystemName }}</td>
+          <td>{{ .ApplicationName}}</td>
+          <td>{{ .GroupName}}</td>
+          <td>{{ .PodCpuAvg}}</td>
+          <td>{{ .ContainerCpuAvg}}</td>
+          <td>{{ .PodMemAvg}}</td>
+          <td>{{ .ContainerMemAvg}}</td>
+          <td>{{ .PodCoreAvg}}</td>
+          <td>{{ .ContainerCoreAvg}}</td>
+          <td>{{ .PodMemValue}}</td>
+          <td>{{ .ContainerMemValue}}</td>
+          <td>{{ .Recommend}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </body>
+</html>
